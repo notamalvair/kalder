@@ -75,6 +75,9 @@ def run():
                 try:
                     page = browser.new_page()
                     errors = []
+                    submissions = []
+                    page.on('request', lambda request: submissions.append(request.url)
+                            if request.method == 'POST' and request.url.endswith('/api/audits') else None)
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.goto('http://127.0.0.1:3100/analyse')
                     page.locator('#website-check').fill('example.com')
@@ -96,6 +99,14 @@ def run():
                     assert message['to'] == 'visitor@example.org'
                     assert 'Fixture Restaurant' in message['html']
                     assert 'Fixture Restaurant' in message['text']
+                    saved = page.evaluate("JSON.parse(sessionStorage.getItem('kalder.report-request.v1'))")
+                    assert sorted(saved) == ['id', 'savedAt']
+                    page.reload()
+                    page.get_by_text('Der Testbericht wurde erstellt und lokal gespeichert. Es wurde keine E-Mail versendet.', exact=True).wait_for()
+                    assert len(submissions) == 1, 'reload must not create another job'
+                    page.get_by_role('button', name='Neue Analyse anfordern', exact=True).click()
+                    assert page.evaluate("sessionStorage.getItem('kalder.report-request.v1')") is None
+                    print('PASS: reload restores status without another POST; explicit reset clears saved id')
                     print('PASS: browser → Vite proxy → API → SQLite → safe fetch fixture → report → local mail')
                     # Private addresses are rejected at the form before submission.
                     page.goto('http://127.0.0.1:3100/kontakt')
@@ -104,6 +115,10 @@ def run():
                     page.get_by_role('button', name='Bericht anfordern', exact=True).click()
                     page.locator('#website-error').wait_for()
                     assert page.locator('#website').evaluate('(element) => element === document.activeElement')
+                    page.evaluate("sessionStorage.setItem('kalder.report-request.v1', JSON.stringify({id:'b'.repeat(64), savedAt:Date.now()}))")
+                    page.reload()
+                    page.get_by_role('alert').filter(has_text='nicht gefunden').wait_for()
+                    assert page.evaluate("sessionStorage.getItem('kalder.report-request.v1')") is None
                     # Provider-acceptance copy is checked separately without sending real email.
                     page.route('**/api/config', lambda route: route.fulfill(json={'mailMode': 'resend'}))
                     page.route('**/api/audits', lambda route: route.fulfill(status=202, json={'id': 'a'*64, 'state': 'queued'}))

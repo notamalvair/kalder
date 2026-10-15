@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { normalizeWebsite, isValidEmail } from '../lib/validation';
+import { readSavedRequest, saveRequest, clearSavedRequest } from '../lib/savedRequest';
 
 type MailMode = 'file' | 'resend' | 'disabled';
 type Job = { id: string; state: string; error?: string; delivery?: { state: string } };
@@ -17,7 +18,11 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
   const [email, setEmail] = useState('');
   const [mode, setMode] = useState<MailMode | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<Job | null>(() => {
+    const id = readSavedRequest();
+    return id ? { id, state: 'restoring' } : null;
+  });
+  const [storageNotice, setStorageNotice] = useState('');
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ website?: string; email?: string }>({});
   const websiteRef = useRef<HTMLInputElement>(null);
@@ -63,6 +68,13 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
       const timeout = setTimeout(() => active?.abort(), 10000);
       try {
         const response = await fetch(`/api/audits/${job!.id}`, { signal: active.signal });
+        if (stopped) return;
+        if (response.status === 404) {
+          clearSavedRequest();
+          setJob(null);
+          setError('Die gespeicherte Anfrage wurde nicht gefunden oder ist abgelaufen. Sie können eine neue Analyse anfordern.');
+          return;
+        }
         if (!response.ok) throw new Error();
         const next: Job = await response.json();
         if (stopped) return;
@@ -112,6 +124,7 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
       }
       if (response.status !== 202 || !/^[a-f0-9]{64}$/.test(data.id)) throw new Error();
       if (['file', 'resend', 'disabled'].includes(data.mailMode)) setMode(data.mailMode);
+      if (!saveRequest(data.id)) setStorageNotice('Ihr Browser erlaubt keine Speicherung des Status. Lassen Sie diese Seite bis zum Abschluss geöffnet.');
       setJob({ id: data.id, state: data.state });
     } catch {
       if (submitAbort.current === controller) setError('Die Bestätigung konnte nicht geladen werden. Die Anfrage könnte bereits gespeichert sein; bitte nicht sofort erneut senden.');
@@ -119,8 +132,16 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
   }
 
   const inputClass = 'w-full px-4 py-3 border border-border text-sm text-graphite focus:outline-none focus:border-accent bg-ivory';
+  const terminal = job?.state === 'failed' || ['stored', 'accepted', 'failed'].includes(job?.delivery?.state ?? '');
+  function newRequest() {
+    clearSavedRequest();
+    setJob(null); setError(''); setPollNotice(''); setStorageNotice('');
+    setFieldErrors({}); setEmail(''); setWebsite(initialWebsite);
+    focusField.current = 'website';
+  }
   let progress = 'Ihre Anfrage wurde gespeichert. Die Website wird geprüft.';
-  if (job?.state === 'failed') progress = 'Die Website konnte nicht geprüft werden. Es wurde kein Bericht versendet.';
+  if (job?.state === 'restoring') progress = 'Der Status Ihrer gespeicherten Anfrage wird geladen. Es wird keine neue Anfrage gesendet.';
+  else if (job?.state === 'failed') progress = 'Die Website konnte nicht geprüft werden. Es wurde kein Bericht versendet.';
   else if (job?.delivery?.state === 'failed') progress = 'Der Bericht ist erstellt, konnte aber nicht übermittelt werden.';
   else if (job?.delivery?.state === 'stored') progress = 'Der Testbericht wurde erstellt und lokal gespeichert. Es wurde keine E-Mail versendet.';
   else if (job?.delivery?.state === 'accepted') progress = 'Der Bericht wurde vom E-Mail-Dienst angenommen. Bitte prüfen Sie auch Ihren Spam-Ordner.';
@@ -138,6 +159,8 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
         <h3 className="display text-xl text-graphite">Anfrage angenommen</h3>
         <p className="text-sm text-graphite-muted">{progress}</p>
         {pollNotice && <p className="text-sm text-graphite-muted">{pollNotice}</p>}
+        {storageNotice && <p className="text-sm text-graphite-muted">{storageNotice}</p>}
+        {terminal && <button type="button" onClick={newRequest} className="text-sm text-accent underline">Neue Analyse anfordern</button>}
       </div> : <fieldset disabled={submitting} className="space-y-6">
         <div><label htmlFor="website" className="block text-sm mb-2">Website *</label>
           <input id="website" ref={websiteRef} name="website" type="text" inputMode="url" autoComplete="url" required maxLength={2048}
