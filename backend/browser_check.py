@@ -80,6 +80,49 @@ def run():
                     submissions = []
                     page.on('request', lambda request: submissions.append(request.url)
                             if request.method == 'POST' and request.url.endswith('/api/audits') else None)
+                    page.emulate_media(reduced_motion='reduce')
+                    page.set_viewport_size({'width': 390, 'height': 844})
+                    page.goto('http://127.0.0.1:3100/', wait_until='domcontentloaded')
+                    page.keyboard.press('Tab')
+                    assert page.get_by_role('link', name='Zum Inhalt springen', exact=True).evaluate('(element) => element === document.activeElement')
+                    page.keyboard.press('Enter')
+                    assert page.locator('#main-content').evaluate('(element) => element === document.activeElement')
+                    menu = page.get_by_role('button', name='Menü', exact=True)
+                    menu.focus()
+                    page.keyboard.press('Enter')
+                    navigation = page.get_by_role('navigation', name='Mobile Navigation', exact=True)
+                    navigation.wait_for()
+                    assert menu.get_attribute('aria-expanded') == 'true'
+                    page.keyboard.press('Tab')
+                    first = navigation.get_by_role('link', name='Leistungen', exact=True)
+                    assert first.evaluate('(element) => element === document.activeElement')
+                    page.keyboard.press('Escape')
+                    assert menu.evaluate('(element) => element === document.activeElement')
+                    assert menu.get_attribute('aria-expanded') == 'false'
+                    assert navigation.count() == 0
+                    menu.click()
+                    first.focus()
+                    page.keyboard.press('Enter')
+                    page.wait_for_url('**/leistungen')
+                    page.wait_for_function("document.activeElement?.id === 'main-content'")
+                    assert navigation.count() == 0
+                    menu.click()
+                    first.focus()
+                    page.set_viewport_size({'width': 1280, 'height': 800})
+                    desktop = page.get_by_role('navigation', name='Hauptnavigation', exact=True)
+                    desktop.get_by_role('link', name='Leistungen', exact=True).wait_for()
+                    page.wait_for_function("document.activeElement?.closest('nav')?.getAttribute('aria-label') === 'Hauptnavigation'")
+                    assert desktop.get_by_role('link', name='Leistungen', exact=True).get_attribute('aria-current') == 'page'
+                    page.set_viewport_size({'width': 390, 'height': 844})
+                    assert menu.get_attribute('aria-expanded') == 'false'
+                    menu.click()
+                    navigation.get_by_role('link', name='Website prüfen', exact=True).focus()
+                    page.keyboard.press('Tab')
+                    assert navigation.count() == 0
+                    for width in [320, 390, 768, 1024, 1440]:
+                        page.set_viewport_size({'width': width, 'height': 844})
+                        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), width
+                    print('PASS: skip link, mobile keyboard navigation, Escape/focus, route change, resize, tab exit, widths 320–1440')
                     for path in ['/missing-page', '/missing/nested?from=test']:
                         page.goto('http://127.0.0.1:3100' + path, wait_until='domcontentloaded')
                         page.get_by_role('heading', name='Seite nicht gefunden', exact=True).wait_for()

@@ -14,11 +14,12 @@ import NotFound from './pages/NotFound';
 export default function App() {
   return (
     <BrowserRouter>
+      <a href="#main-content" className="skip-link">Zum Inhalt springen</a>
       <ScrollToTop />
       <SiteMeta />
       <div className="min-h-screen bg-ivory">
         <Header />
-        <main>
+        <main id="main-content" tabIndex={-1}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/leistungen" element={<Leistungen />} />
