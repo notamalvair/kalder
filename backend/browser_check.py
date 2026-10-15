@@ -77,12 +77,24 @@ def run():
                     # Local functional checks do not depend on remote fonts or photographs.
                     page.route('https://**/*', lambda route: route.abort())
                     errors = []
+                    font_requests = []
+                    page.on('request', lambda request: font_requests.append(request.url)
+                            if request.resource_type == 'font' else None)
                     submissions = []
                     page.on('request', lambda request: submissions.append(request.url)
                             if request.method == 'POST' and request.url.endswith('/api/audits') else None)
                     page.emulate_media(reduced_motion='reduce')
                     page.set_viewport_size({'width': 390, 'height': 844})
                     page.goto('http://127.0.0.1:3100/', wait_until='domcontentloaded')
+                    for family in ['Inter', 'Space Grotesk', 'JetBrains Mono']:
+                        assert page.evaluate('''async family => {
+                            const fonts = await document.fonts.load(`400 16px "${family}"`, 'Grüße');
+                            return fonts.length > 0 && fonts.every(font => font.status === 'loaded');
+                        }''', family), family
+                    assert len(font_requests) >= 3
+                    assert all(url.startswith('http://127.0.0.1:3100/fonts/') for url in font_requests)
+                    assert page.locator('link[href*="fonts.googleapis.com"], link[href*="fonts.gstatic.com"]').count() == 0
+                    print('PASS: all three local fonts load with external requests blocked')
                     page.keyboard.press('Tab')
                     assert page.get_by_role('link', name='Zum Inhalt springen', exact=True).evaluate('(element) => element === document.activeElement')
                     page.keyboard.press('Enter')
