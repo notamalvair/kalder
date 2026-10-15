@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@theme {
+  /* Backgrounds */
+  --color-ivory: #F3F0E9;
+  --color-ivory-warm: #EEEAE1;
+  --color-ivory-deep: #E8E3D8;
+  --color-bone: #FAF7F1;
+
+  /* Typography */
+  --color-graphite: #111312;
+  --color-graphite-soft: #1A1C1B;
+  --color-charcoal: #2A2D2B;
+  --color-graphite-muted: #6B6F6D;
+  --color-graphite-faint: #9A9E9C;
+
+  /* Accent — mineral / oxidized green */
+  --color-accent: #4A5D52;
+  --color-accent-deep: #3A4A41;
+  --color-accent-light: #6B7F72;
+  --color-accent-faint: #D4DCD6;
+
+  /* UI */
+  --color-border: #D8D3C7;
+  --color-border-light: #E5E1D6;
+  --color-border-dark: #B8B3A6;
+
+  /* Fonts */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-ivory);
+  color: var(--color-graphite);
+  line-height: 1.6;
+  font-feature-settings: 'ss01', 'ss02';
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-ivory);
+}
+
+/* Thin rule utility */
+.rule {
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+.rule-dark {
+  height: 1px;
+  background-color: rgba(243, 240, 233, 0.12);
+}
+
+/* Metadata text */
+.meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-graphite-muted);
+}
+
+.meta-light {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(243, 240, 233, 0.5);
+}
+
+/* Display text */
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+
+/* Label */
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* A/B variant B: stronger interaction clarity without decorative noise */
+a, button, input, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #9f3f35;
+}
+
+@media (max-width: 640px) {
+  .display {
+    letter-spacing: -0.025em;
+  }
+}
