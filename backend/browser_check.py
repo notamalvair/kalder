@@ -1,4 +1,4 @@
-"""Optional local E2E: python backend/browser_check.py (Playwright + Chromium required)."""
+"""E2E: build to .runtime/build, then python backend/browser_check.py (Playwright + Chromium)."""
 import json
 import os
 from pathlib import Path
@@ -56,8 +56,9 @@ def run():
         try:
             port = json.loads(fixture.stdout.readline())['port']
             env = dict(os.environ, KALDER_API_PROXY_TARGET=f'http://127.0.0.1:{port}')
-            vite = subprocess.Popen(['node', 'node_modules/vite/bin/vite.js', '--host',
-                                     '127.0.0.1', '--port', '3100'], cwd=ROOT, env=env,
+            vite = subprocess.Popen(['node', 'node_modules/vite/bin/vite.js', 'preview',
+                                     '--outDir', '.runtime/build', '--host',
+                                     '127.0.0.1', '--port', '3100', '--strictPort'], cwd=ROOT, env=env,
                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             for _ in range(100):
                 try:
@@ -83,7 +84,9 @@ def run():
                     assert page.locator('#website').input_value() == 'https://example.com/' or page.locator('#website').input_value() == 'https://example.com'
                     submit = page.get_by_role('button', name='Bericht anfordern', exact=True)
                     submit.click()
-                    page.get_by_role('alert').wait_for()
+                    page.locator('#email-error').wait_for()
+                    assert page.locator('#email').get_attribute('aria-invalid') == 'true'
+                    assert page.locator('#email').evaluate('(element) => element === document.activeElement')
                     page.locator('#email').fill('visitor@example.org')
                     submit.click()
                     page.get_by_text('Der Testbericht wurde erstellt und lokal gespeichert. Es wurde keine E-Mail versendet.', exact=True).wait_for(timeout=15000)
@@ -94,12 +97,13 @@ def run():
                     assert 'Fixture Restaurant' in message['html']
                     assert 'Fixture Restaurant' in message['text']
                     print('PASS: browser → Vite proxy → API → SQLite → safe fetch fixture → report → local mail')
-                    # A forged public address cannot reach a private service through the API.
+                    # Private addresses are rejected at the form before submission.
                     page.goto('http://127.0.0.1:3100/kontakt')
                     page.locator('#website').fill('http://127.0.0.1')
                     page.locator('#email').fill('visitor@example.org')
                     page.get_by_role('button', name='Bericht anfordern', exact=True).click()
-                    page.get_by_role('alert').filter(has_text='öffentlich erreichbare').wait_for()
+                    page.locator('#website-error').wait_for()
+                    assert page.locator('#website').evaluate('(element) => element === document.activeElement')
                     # Provider-acceptance copy is checked separately without sending real email.
                     page.route('**/api/config', lambda route: route.fulfill(json={'mailMode': 'resend'}))
                     page.route('**/api/audits', lambda route: route.fulfill(status=202, json={'id': 'a'*64, 'state': 'queued'}))
@@ -110,7 +114,7 @@ def run():
                     page.get_by_role('button', name='Bericht anfordern', exact=True).click()
                     page.get_by_text('Der Bericht wurde vom E-Mail-Dienst angenommen. Bitte prüfen Sie auch Ihren Spam-Ordner.', exact=True).wait_for()
                     assert not errors, errors
-                    print('PASS: validation, SSRF rejection, distinct test/real-mode copy; no JS exceptions')
+                    print('PASS: field errors/focus, private-address rejection, distinct test/real-mode copy; no JS exceptions')
                 finally:
                     browser.close()
         finally:

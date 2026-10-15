@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { normalizeWebsite, isValidEmail } from '../lib/validation';
 
 type MailMode = 'file' | 'resend' | 'disabled';
 type Job = { id: string; state: string; error?: string; delivery?: { state: string } };
@@ -18,9 +19,19 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
   const [submitting, setSubmitting] = useState(false);
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ website?: string; email?: string }>({});
+  const websiteRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const focusField = useRef<'website' | 'email' | null>(null);
   const [pollNotice, setPollNotice] = useState('');
   const submittingRef = useRef(false);
   const submitAbort = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (submitting || !focusField.current) return;
+    (focusField.current === 'website' ? websiteRef : emailRef).current?.focus();
+    focusField.current = null;
+  }, [fieldErrors, submitting]);
 
   useEffect(() => { setWebsite(initialWebsite); }, [initialWebsite]);
   useEffect(() => {
@@ -72,8 +83,14 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
     event.preventDefault();
     if (submittingRef.current || job || !mode || mode === 'disabled') return;
     setError('');
-    if (!website.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setError('Bitte ergänzen Sie Website und eine gültige E-Mail-Adresse.'); return;
+    const normalized = normalizeWebsite(website);
+    const invalid = {
+      ...(!normalized ? { website: 'Bitte geben Sie eine öffentliche Domain wie restaurant.de ein, ohne Zugangsdaten oder eigenen Port.' } : {}),
+      ...(!isValidEmail(email) ? { email: 'Bitte geben Sie eine gültige E-Mail-Adresse ein, zum Beispiel name@firma.de.' } : {}),
+    };
+    setFieldErrors(invalid);
+    if (invalid.website || invalid.email) {
+      focusField.current = invalid.website ? 'website' : 'email'; return;
     }
     submittingRef.current = true;
     setSubmitting(true);
@@ -83,9 +100,16 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
     try {
       const response = await fetch('/api/audits', { method: 'POST',
         signal: controller.signal, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ website: website.trim(), email: email.trim() }) });
+        body: JSON.stringify({ website: normalized, email: email.trim() }) });
       const data = await response.json();
-      if (!response.ok) { setError(errors[data.error] ?? 'Die Anfrage konnte nicht angenommen werden. Bitte versuchen Sie es später erneut.'); return; }
+      if (!response.ok) {
+        if (['invalid_url', 'invalid_website', 'invalid_email'].includes(data.error)) {
+          const field = data.error === 'invalid_email' ? 'email' : 'website';
+          focusField.current = field;
+          setFieldErrors({ [field]: errors[data.error] });
+        } else setError(errors[data.error] ?? 'Die Anfrage konnte nicht angenommen werden. Bitte versuchen Sie es später erneut.');
+        return;
+      }
       if (response.status !== 202 || !/^[a-f0-9]{64}$/.test(data.id)) throw new Error();
       if (['file', 'resend', 'disabled'].includes(data.mailMode)) setMode(data.mailMode);
       setJob({ id: data.id, state: data.state });
@@ -116,11 +140,15 @@ export default function ReportRequest({ initialWebsite = '' }: { initialWebsite?
         {pollNotice && <p className="text-sm text-graphite-muted">{pollNotice}</p>}
       </div> : <fieldset disabled={submitting} className="space-y-6">
         <div><label htmlFor="website" className="block text-sm mb-2">Website *</label>
-          <input id="website" name="website" type="text" inputMode="url" autoComplete="url" required maxLength={2048}
-            value={website} onChange={e => setWebsite(e.target.value)} className={inputClass} placeholder="restaurant.de" /></div>
+          <input id="website" ref={websiteRef} name="website" type="text" inputMode="url" autoComplete="url" required maxLength={2048}
+            aria-invalid={Boolean(fieldErrors.website)} aria-describedby={fieldErrors.website ? 'website-error' : undefined}
+            value={website} onChange={e => { setWebsite(e.target.value); setFieldErrors(current => ({ ...current, website: undefined })); }} className={inputClass} placeholder="restaurant.de" />
+          {fieldErrors.website && <p id="website-error" role="alert" className="mt-2 text-sm text-red-700">{fieldErrors.website}</p>}</div>
         <div><label htmlFor="email" className="block text-sm mb-2">E-Mail *</label>
-          <input id="email" name="email" type="email" autoComplete="email" required maxLength={254}
-            value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="ihre@email.de" /></div>
+          <input id="email" ref={emailRef} name="email" type="email" autoComplete="email" required maxLength={254}
+            aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+            value={email} onChange={e => { setEmail(e.target.value); setFieldErrors(current => ({ ...current, email: undefined })); }} className={inputClass} placeholder="ihre@email.de" />
+          {fieldErrors.email && <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">{fieldErrors.email}</p>}</div>
         <button type="submit" disabled={!mode || mode === 'disabled' || submitting}
           className="w-full px-7 py-3.5 bg-graphite text-ivory text-sm disabled:opacity-60">
           {submitting ? 'Wird angefragt…' : 'Bericht anfordern'}

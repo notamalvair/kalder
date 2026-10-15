@@ -2,26 +2,13 @@ import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '../lib/analytics';
+import { normalizeWebsite } from '../lib/validation';
 
 type CheckState = 'default' | 'validating' | 'ready' | 'success';
 
-function normalizeWebsite(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return '';
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-}
-
-function isValidWebsite(value: string) {
-  try {
-    const url = new URL(normalizeWebsite(value));
-    return Boolean(url.hostname.includes('.'));
-  } catch {
-    return false;
-  }
-}
-
 export default function WebsiteCheck() {
   const ref = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
   const navigate = useNavigate();
   const [url, setUrl] = useState('');
@@ -34,9 +21,10 @@ export default function WebsiteCheck() {
     setState('validating');
 
     window.setTimeout(() => {
-      if (!isValidWebsite(url)) {
-        setError('Bitte geben Sie eine gültige Website ein.');
+      if (!normalizeWebsite(url)) {
+        setError('Bitte geben Sie eine öffentliche Domain wie restaurant.de ein, ohne Zugangsdaten oder eigenen Port.');
         setState('default');
+        inputRef.current?.focus();
         return;
       }
       setState('ready');
@@ -46,6 +34,7 @@ export default function WebsiteCheck() {
 
   const continueToContact = () => {
     const normalized = normalizeWebsite(url);
+    if (!normalized) { setState('default'); return; }
     setState('success');
     trackEvent('website_check_continue');
     window.setTimeout(() => {
@@ -104,7 +93,10 @@ export default function WebsiteCheck() {
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
                 <input
                   id="website-check"
-                  type="url"
+                  ref={inputRef}
+                  type="text"
+                  inputMode="url"
+                  maxLength={2048}
                   value={url}
                   onChange={(e) => {
                     setUrl(e.target.value);
