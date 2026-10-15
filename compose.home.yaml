@@ -1,0 +1,37 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.home
+      target: backend
+    restart: unless-stopped
+    environment:
+      KALDER_MAIL_MODE: ${KALDER_MAIL_MODE:-file}
+      KALDER_MAIL_API_KEY: ${KALDER_MAIL_API_KEY:-}
+      KALDER_MAIL_FROM: ${KALDER_MAIL_FROM:-}
+    volumes:
+      - backend-data:/app/.runtime/backend
+    healthcheck:
+      test: ["CMD", "node", "--input-type=module", "-e", "const r = await fetch('http://127.0.0.1:3001/api/healthz', {signal: AbortSignal.timeout(2000)}); if (!r.ok) process.exit(1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.home
+      target: web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${KALDER_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-Y", "off", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+volumes:
+  backend-data:

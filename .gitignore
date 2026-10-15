@@ -5,3 +5,5 @@ build/
 *.log
 
 .runtime/
+.env.home
+kalder-outbox/

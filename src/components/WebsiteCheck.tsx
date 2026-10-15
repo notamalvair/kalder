@@ -147,7 +147,7 @@ export default function WebsiteCheck() {
                 <div className="mt-6 pt-6 border-t border-border">
                   <p className="label text-accent mb-2">ANALYSE VORBEREITET</p>
                   <p className="text-sm text-graphite-muted">
-                    Wir benötigen nur noch Ihre Kontaktdaten. Es wird noch kein automatischer Live-Scan behauptet.
+                    Ergänzen Sie Ihre E-Mail-Adresse, um den technischen Website-Bericht anzufordern. Die Analyse startet nach dem Absenden.
                   </p>
                 </div>
               ) : (
