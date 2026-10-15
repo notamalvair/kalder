@@ -35,7 +35,7 @@ export default function ProjectPreview() {
             <div className="lg:col-span-8">
               <div className="aspect-[16/10] bg-ivory-deep overflow-hidden border border-border">
                 <img
-                  src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&q=80"
+                  src="/images/restaurant.webp"
                   alt="Independent Restaurant concept"
                   className="w-full h-full object-cover saturate-[0.8] contrast-[1.03] hover:scale-[1.01] transition-transform duration-700"
                 />

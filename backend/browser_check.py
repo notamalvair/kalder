@@ -78,6 +78,9 @@ def run():
                     page.route('https://**/*', lambda route: route.abort())
                     errors = []
                     font_requests = []
+                    image_requests = []
+                    page.on('request', lambda request: image_requests.append(request.url)
+                            if request.resource_type == 'image' else None)
                     page.on('request', lambda request: font_requests.append(request.url)
                             if request.resource_type == 'font' else None)
                     submissions = []
@@ -199,6 +202,19 @@ def run():
                     page.locator('#email').fill('visitor@example.org')
                     page.get_by_role('button', name='Bericht anfordern', exact=True).click()
                     page.get_by_text('Der Bericht wurde vom E-Mail-Dienst angenommen. Bitte prüfen Sie auch Ihren Spam-Ordner.', exact=True).wait_for()
+                    for path in ['/', '/projekte']:
+                        page.goto('http://127.0.0.1:3100' + path, wait_until='domcontentloaded')
+                        images = page.evaluate('''async () => {
+                            const images = [...document.images];
+                            await Promise.all(images.map(async image => {
+                                image.loading = 'eager'; await image.decode();
+                            }));
+                            return images.map(image => ({src:image.currentSrc, width:image.naturalWidth}));
+                        }''')
+                        assert images, path
+                        assert all(image['width'] > 0 and '/images/' in image['src'] for image in images), images
+                    assert image_requests and all(url.startswith('http://127.0.0.1:3100/images/') for url in image_requests)
+                    print('PASS: all home/project photographs decode locally with external HTTPS blocked')
                     assert not errors, errors
                     print('PASS: field errors/focus, private-address rejection, distinct test/real-mode copy; no JS exceptions')
                 finally:

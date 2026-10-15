@@ -7,7 +7,7 @@ const concepts = [
     title: 'Independent Restaurant',
     tags: ['Brand', 'Web', 'Reservierung'],
     description: 'Digitale Präsenz, die Atmosphäre und Küche übersetzt.',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&q=80',
+    image: '/images/restaurant.webp',
     layout: 'wide',
   },
   {
@@ -15,7 +15,7 @@ const concepts = [
     title: 'Modern Café',
     tags: ['Digitale Präsenz', 'Lokale Sichtbarkeit'],
     description: 'Lokale Sichtbarkeit und klare Informationsarchitektur.',
-    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1000&q=80',
+    image: '/images/cafe.webp',
     layout: 'split',
   },
   {
@@ -23,7 +23,7 @@ const concepts = [
     title: 'Local Service Business',
     tags: ['Web', 'Anfrage-Conversion'],
     description: 'Vertrauen und einfache Kontaktaufnahme im Fokus.',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1000&q=80',
+    image: '/images/office.webp',
     layout: 'editorial',
   },
 ];

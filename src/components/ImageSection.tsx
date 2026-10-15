@@ -17,7 +17,7 @@ export default function ImageSection() {
         >
           <div className="aspect-[16/9] md:aspect-[21/9] bg-ivory-deep overflow-hidden border border-border">
             <img
-              src="https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=1600&q=80"
+              src="/images/dining.webp"
               alt="Restaurant interior with warm natural light"
               className="w-full h-full object-cover saturate-[0.78] contrast-[1.04] brightness-[0.92] hover:scale-[1.01] transition-transform duration-700"
             />
