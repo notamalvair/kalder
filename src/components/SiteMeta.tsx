@@ -41,7 +41,12 @@ export default function SiteMeta() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const meta = metaByPath[pathname] ?? metaByPath['/'];
+    // React Router matches these routes case-insensitively with optional trailing slash.
+    const key = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+    const meta = metaByPath[key] ?? {
+      title: 'Seite nicht gefunden (404) — KALDER',
+      description: 'Diese Seite wurde nicht gefunden. Zur Startseite oder zur Website-Analyse von KALDER.',
+    };
     document.title = meta.title;
     document.body.dataset.variant = 'B';
 

@@ -9,6 +9,7 @@ import Analyse from './pages/Analyse';
 import Projekte from './pages/Projekte';
 import Kontakt from './pages/Kontakt';
 import LegalPlaceholder from './pages/LegalPlaceholder';
+import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/kontakt" element={<Kontakt />} />
             <Route path="/impressum" element={<LegalPlaceholder title="Impressum" number="LEGAL / 01" />} />
             <Route path="/datenschutz" element={<LegalPlaceholder title="Datenschutz" number="LEGAL / 02" />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />

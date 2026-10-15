@@ -74,10 +74,26 @@ def run():
                                             args=['--no-sandbox'])
                 try:
                     page = browser.new_page()
+                    # Local functional checks do not depend on remote fonts or photographs.
+                    page.route('https://**/*', lambda route: route.abort())
                     errors = []
                     submissions = []
                     page.on('request', lambda request: submissions.append(request.url)
                             if request.method == 'POST' and request.url.endswith('/api/audits') else None)
+                    for path in ['/missing-page', '/missing/nested?from=test']:
+                        page.goto('http://127.0.0.1:3100' + path, wait_until='domcontentloaded')
+                        page.get_by_role('heading', name='Seite nicht gefunden', exact=True).wait_for()
+                        page.wait_for_function("document.title === 'Seite nicht gefunden (404) — KALDER'")
+                        assert 'nicht gefunden' in page.locator('meta[name="description"]').get_attribute('content')
+                    page.get_by_role('link', name='Zur Startseite', exact=True).click()
+                    page.wait_for_url('http://127.0.0.1:3100/')
+                    assert page.get_by_role('heading', name='Seite nicht gefunden', exact=True).count() == 0
+                    for path in ['/', '/leistungen', '/analyse', '/projekte', '/kontakt', '/impressum', '/datenschutz', '/KONTAKT/']:
+                        page.goto('http://127.0.0.1:3100' + path, wait_until='domcontentloaded')
+                        page.locator('h1').wait_for()
+                        assert page.get_by_role('heading', name='Seite nicht gefunden', exact=True).count() == 0
+                        page.wait_for_function("!document.title.includes('(404)')")
+                    print('PASS: unknown routes show 404 metadata and working home link; existing routes still render')
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.goto('http://127.0.0.1:3100/analyse')
                     page.locator('#website-check').fill('example.com')
