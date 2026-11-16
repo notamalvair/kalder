@@ -37,7 +37,7 @@ export function analysePage({ url, statusCode, html = '', contentType = '',
   if (error || !Number.isInteger(statusCode) || statusCode < 200 || statusCode >= 300) {
     return { ...base, status: 'unavailable', error: error ? 'fetch_failed' : 'http_error' };
   }
-  if (!/^text\/html(?:\s*;|$)/i.test(contentType) || !html.trim()) {
+  if (!/^(?:text\/html|application\/xhtml\+xml)(?:\s*;|$)/i.test(contentType) || !html.trim()) {
     return { ...base, status: 'unsupported', error: 'no_html' };
   }
 

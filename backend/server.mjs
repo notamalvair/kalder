@@ -39,7 +39,17 @@ async function readJson(req) {
   catch { throw new Error('invalid_json'); }
 }
 
-export function createApi(store, { mailMode = 'disabled' } = {}) {
+// Behind our own reverse proxy every visitor arrives from the proxy address. Only when
+// explicitly enabled, and only for a non-public peer, take the visitor from X-Real-IP.
+function clientAddress(req, trustProxy) {
+  const peer = (req.socket.remoteAddress ?? 'unknown').replace(/^::ffff:/i, '');
+  const forwarded = req.headers['x-real-ip'];
+  if (trustProxy && typeof forwarded === 'string' && isIP(forwarded.trim()) &&
+    isIP(peer) && !isPublicAddress(peer)) return forwarded.trim();
+  return peer;
+}
+
+export function createApi(store, { mailMode = 'disabled', trustProxy = false } = {}) {
   const server = http.createServer(async (req, res) => {
     const send = (status, body, headers = {}) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8',
@@ -52,7 +62,7 @@ export function createApi(store, { mailMode = 'disabled' } = {}) {
       if (req.method === 'GET' && path === '/api/config') return send(200, { mailMode });
       if (req.method === 'POST' && path === '/api/audits') {
         const input = validate(await readJson(req));
-        const clientKey = createHash('sha256').update(req.socket.remoteAddress ?? 'unknown').digest('hex');
+        const clientKey = createHash('sha256').update(clientAddress(req, trustProxy)).digest('hex');
         const job = store.enqueue({ ...input, clientKey });
         const message = mailMode === 'resend' ? 'Request accepted. The report will be submitted for email delivery after analysis.' :
           mailMode === 'file' ? 'Request accepted. Local test mode: the report will be saved, not emailed.' :
@@ -86,7 +96,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolvePath(process.arg
   const deliver = createMailer({ mode: mailMode, directory: process.env.KALDER_OUTBOX_PATH,
     apiKey: process.env.KALDER_MAIL_API_KEY, from: process.env.KALDER_MAIL_FROM });
   const store = new JobStore(process.env.KALDER_DB_PATH || resolvePath('.runtime/backend/jobs.sqlite'));
-  const server = createApi(store, { mailMode });
+  const server = createApi(store, { mailMode, trustProxy: process.env.KALDER_TRUST_PROXY === '1' });
   const stopWorker = startWorker(store);
   const stopDelivery = startDeliveryWorker(store, deliver);
   const port = Number(process.env.KALDER_API_PORT || 3001);

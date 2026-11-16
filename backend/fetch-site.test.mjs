@@ -100,3 +100,61 @@ test('deadlines cover stalled responses and DNS', async t => {
   const stalledDns = createSiteFetcher({ resolve: () => new Promise(() => {}), timeoutMs: 20 });
   await assert.rejects(stalledDns('example.com'), /timeout/);
 });
+
+test('decodes gzip and brotli bodies and bounds the decoded size', async t => {
+  const { gzipSync, brotliCompressSync } = await import('node:zlib');
+  const page = '<title>Komprimiert</title>';
+  const { fetch } = await fixture(t, (req, res) => {
+    assert.match(req.headers['accept-encoding'], /gzip/);
+    const br = req.url === '/br';
+    res.writeHead(200, { 'Content-Type': 'text/html', 'Content-Encoding': br ? 'br' : 'gzip' });
+    res.end(req.url === '/bomb' ? gzipSync(Buffer.alloc(200_000)) :
+      br ? brotliCompressSync(page) : gzipSync(page));
+  }, { maxBytes: 50_000 });
+  assert.equal((await fetch('http://example.com')).html, page);
+  assert.equal((await fetch('http://example.com/br')).html, page);
+  await assert.rejects(fetch('http://example.com/bomb'), /response_too_large/);
+});
+
+test('rejects unknown and corrupt content encodings', async t => {
+  const { fetch } = await fixture(t, (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/html', 'Content-Encoding': req.url === '/bad' ? 'gzip' : 'zstd' });
+    res.end('not compressed');
+  });
+  await assert.rejects(fetch('http://example.com'), /unsupported_encoding/);
+  await assert.rejects(fetch('http://example.com/bad'), /invalid_encoding/);
+});
+
+test('decodes legacy charsets from the header or an early meta tag', async t => {
+  const { fetch } = await fixture(t, (req, res) => {
+    const header = req.url === '/header';
+    res.setHeader('Content-Type', header ? 'text/html; charset=ISO-8859-1' :
+      req.url === '/unknown' ? 'text/html; charset=x-nope' : 'text/html');
+    res.end(Buffer.from(`${header ? '' : '<meta charset="windows-1252">'}<title>Gaststätte Müller</title>`, 'latin1'));
+  });
+  for (const path of ['/header', '/meta']) {
+    assert.equal(analysePage(await fetch(`http://example.com${path}`)).pageTitle, 'Gaststätte Müller');
+  }
+  await assert.rejects(fetch('http://example.com/unknown'), /unsupported_charset/);
+});
+
+test('prefers IPv4 and falls back to the next validated address when unreachable', async t => {
+  const server = http.createServer((_req, res) => { res.setHeader('Content-Type', 'text/html'); res.end('OK'); });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => { server.closeAllConnections(); server.close(); });
+  const tried = [];
+  const fetch = createSiteFetcher({
+    resolve: async () => [{ address: '2606:4700:4700::1111', family: 6 },
+      { address: '93.184.215.14', family: 4 }, { address: '93.184.215.15', family: 4 }],
+    request: (url, options, callback) => {
+      let pinned;
+      options.lookup(url.hostname, {}, (_error, address) => { pinned = address; });
+      tried.push(pinned);
+      if (pinned === '93.184.215.14') throw Object.assign(new Error('unreachable'), { code: 'EHOSTUNREACH' });
+      return http.request({ ...options, hostname: '127.0.0.1', port: server.address().port,
+        path: url.pathname, lookup: undefined }, callback);
+    },
+  });
+  assert.equal((await fetch('http://example.com')).html, 'OK');
+  assert.deepEqual(tried, ['93.184.215.14', '93.184.215.15']);
+});

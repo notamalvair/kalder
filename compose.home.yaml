@@ -9,6 +9,7 @@ services:
       KALDER_MAIL_MODE: ${KALDER_MAIL_MODE:-file}
       KALDER_MAIL_API_KEY: ${KALDER_MAIL_API_KEY:-}
       KALDER_MAIL_FROM: ${KALDER_MAIL_FROM:-}
+      KALDER_TRUST_PROXY: "1"
     volumes:
       - backend-data:/app/.runtime/backend
     healthcheck:

@@ -2,6 +2,7 @@ import http from 'node:http';
 import https from 'node:https';
 import { lookup } from 'node:dns/promises';
 import { BlockList, isIP } from 'node:net';
+import { createBrotliDecompress, createGunzip, createInflate } from 'node:zlib';
 
 const blocked = new BlockList();
 for (const [address, prefix] of [
@@ -36,6 +37,18 @@ export function normalizeWebsite(value) {
   return url;
 }
 
+const decoders = { gzip: createGunzip, 'x-gzip': createGunzip, deflate: createInflate, br: createBrotliDecompress };
+// Connection-phase failures where another validated address may still work.
+const unreachable = new Set(['ENETUNREACH', 'EHOSTUNREACH', 'EADDRNOTAVAIL', 'ECONNREFUSED']);
+
+// Header charset wins; otherwise look for an early <meta charset> declaration.
+function decodeHtml(buffer, contentType) {
+  const charset = contentType.match(/charset\s*=\s*["']?([^\s;"']+)/i)?.[1] ??
+    buffer.subarray(0, 2048).toString('latin1').match(/<meta\b[^>]*\bcharset\s*=\s*["']?([\w.:-]+)/i)?.[1] ?? 'utf-8';
+  try { return new TextDecoder(charset).decode(buffer); }
+  catch { throw new Error('unsupported_charset'); }
+}
+
 function beforeDeadline(promise, milliseconds) {
   let timer;
   return Promise.race([promise, new Promise((_, reject) => {
@@ -62,8 +75,9 @@ export function createSiteFetcher({ resolve = lookup, request = (url, options, c
       if (!addresses.length || addresses.some(item => !isPublicAddress(item.address))) {
         throw new Error('blocked_address');
       }
-      const pinned = addresses[0];
-      const result = await new Promise((resolveResponse, reject) => {
+      // Prefer IPv4 (hosts without an IPv6 route are common) and fall back across answers.
+      const candidates = [...addresses].sort((a, b) => a.family - b.family).slice(0, 3);
+      const attempt = pinned => new Promise((resolveResponse, reject) => {
         let req;
         const timer = setTimeout(() => req?.destroy(new Error('timeout')), Math.max(1, deadline - Date.now()));
         const fail = error => { clearTimeout(timer); reject(error); };
@@ -74,7 +88,8 @@ export function createSiteFetcher({ resolve = lookup, request = (url, options, c
             lookup: (_host, options, callback) => options?.all ?
               callback(null, [pinned]) : callback(null, pinned.address, pinned.family),
             headers: { 'User-Agent': 'KALDER-WebsiteCheck/1.0',
-              Accept: 'text/html', 'Accept-Encoding': 'identity' },
+              Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.5',
+              'Accept-Encoding': 'gzip, deflate, br' },
           }, response => {
             const statusCode = response.statusCode;
             const location = response.headers.location;
@@ -85,39 +100,46 @@ export function createSiteFetcher({ resolve = lookup, request = (url, options, c
               return;
             }
             const contentType = String(response.headers['content-type'] ?? '');
-            const encoding = response.headers['content-encoding'];
-            if (encoding && encoding.toLowerCase() !== 'identity') {
+            const encoding = String(response.headers['content-encoding'] ?? 'identity').trim().toLowerCase();
+            const createDecoder = encoding === 'identity' ? null : decoders[encoding];
+            if (createDecoder === undefined) {
               fail(new Error('unsupported_encoding')); response.destroy(); return;
             }
             if (Number(response.headers['content-length']) > maxBytes) {
               fail(new Error('response_too_large')); response.destroy(); return;
             }
+            // The limit counts decoded bytes, so a compressed bomb is cut off early.
+            const body = createDecoder ? response.pipe(createDecoder()) : response;
+            const abort = error => { fail(error); response.destroy(); if (body !== response) body.destroy(); };
             const chunks = [];
             let bytes = 0;
-            response.on('data', chunk => {
+            body.on('data', chunk => {
               bytes += chunk.length;
-              if (bytes > maxBytes) {
-                fail(new Error('response_too_large')); response.destroy(); return;
-              }
+              if (bytes > maxBytes) { abort(new Error('response_too_large')); return; }
               chunks.push(chunk);
             });
             response.on('error', fail);
-            response.on('aborted', () => fail(new Error('response_aborted')));
-            response.on('end', () => {
+            response.on('aborted', () => abort(new Error('response_aborted')));
+            if (body !== response) body.on('error', () => abort(new Error('invalid_encoding')));
+            body.on('end', () => {
               clearTimeout(timer);
-              // Do not produce a misleading report from a legacy encoded page.
-              const charset = contentType.match(/charset\s*=\s*["']?([^\s;"']+)/i)?.[1];
-              if (charset && !/^(utf-8|utf8|us-ascii)$/i.test(charset)) {
-                reject(new Error('unsupported_charset')); return;
-              }
-              resolveResponse({ url: url.href, statusCode, contentType,
-                html: Buffer.concat(chunks).toString('utf8'), responseTimeMs: Date.now() - started });
+              try {
+                resolveResponse({ url: url.href, statusCode, contentType,
+                  html: decodeHtml(Buffer.concat(chunks), contentType), responseTimeMs: Date.now() - started });
+              } catch (error) { reject(error); }
             });
           });
           req.on('error', fail);
           req.end();
         } catch (error) { fail(error); }
       });
+      let result;
+      for (const [index, pinned] of candidates.entries()) {
+        try { result = await attempt(pinned); break; }
+        catch (error) {
+          if (!unreachable.has(error?.code) || index === candidates.length - 1) throw error;
+        }
+      }
       if (!result.redirect) return result;
       if (hop === maxRedirects) throw new Error('too_many_redirects');
       const next = normalizeWebsite(new URL(result.redirect, url).href);

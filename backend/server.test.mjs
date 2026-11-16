@@ -116,3 +116,38 @@ test('worker generates a stored report and records fetch failures without exposi
   assert.equal(report.pageTitle, 'Example');
   assert.equal(store.getStatus(bad.id).error, 'site_unavailable');
 });
+
+test('worker retries a temporary fetch failure once before failing the job', async () => {
+  const store = new JobStore(':memory:');
+  const flaky = store.enqueue({ ...stored, clientKey: 'a' });
+  const dead = store.enqueue({ ...stored, email: 'b@example.org', clientKey: 'b' });
+  const calls = {};
+  const stop = startWorker(store, { pollMs: 1, retryMs: 1, fetch: async url => {
+    const id = store.db.prepare("SELECT id FROM jobs WHERE state='processing'").get().id;
+    calls[id] = (calls[id] ?? 0) + 1;
+    if (id === dead.id || calls[id] === 1) throw new Error('timeout');
+    return { url, statusCode: 200, contentType: 'text/html', html: '<title>Wieder da</title>', responseTimeMs: 5 };
+  } });
+  for (let i = 0; i < 200 && store.getStatus(dead.id).state !== 'failed'; i++) await new Promise(r => setTimeout(r, 5));
+  await stop();
+  assert.equal(store.getStatus(flaky.id).state, 'report_ready');
+  assert.deepEqual([calls[flaky.id], calls[dead.id]], [2, 2]);
+  assert.equal(store.getStatus(dead.id).error, 'site_unavailable');
+  store.close();
+});
+
+test('per-visitor limits use X-Real-IP only when the proxy is explicitly trusted', async t => {
+  for (const trustProxy of [true, false]) {
+    const store = new JobStore(':memory:', { perIp: 1 });
+    const server = createApi(store, { trustProxy });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    t.after(async () => { await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); store.close(); });
+    const post = (ip, email) => fetch(`http://127.0.0.1:${server.address().port}/api/audits`, { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Real-IP': ip }, body: JSON.stringify({ ...input, email }) });
+    assert.equal((await post('203.0.114.7', 'a@example.org')).status, 202);
+    assert.equal((await post('203.0.114.8', 'b@example.org')).status, trustProxy ? 202 : 429);
+    assert.equal((await post('203.0.114.7', 'c@example.org')).status, 429);
+    // A malformed header falls back to the direct peer address, which is a separate bucket.
+    assert.equal((await post('not-an-ip', 'd@example.org')).status, trustProxy ? 202 : 429);
+  }
+});
