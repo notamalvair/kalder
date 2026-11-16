@@ -7,7 +7,7 @@ export default function ProjectPreview() {
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <section className="py-24 md:py-32 lg:py-40 bg-ivory border-t border-border">
+    <section className="py-24 md:py-32 lg:py-40 bg-night border-t border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <motion.div
           ref={ref}
@@ -18,13 +18,13 @@ export default function ProjectPreview() {
           <div className="flex items-end justify-between mb-12">
             <div>
               <p className="label text-accent mb-6">PROJEKT / KONZEPT</p>
-              <h2 className="display text-3xl md:text-4xl lg:text-5xl text-graphite">
+              <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
                 Konzeptarbeit.
               </h2>
             </div>
             <Link
               to="/projekte"
-              className="hidden md:inline-flex items-center text-sm text-graphite-muted hover:text-graphite transition-colors duration-300"
+              className="hidden md:inline-flex items-center text-sm text-cream-muted hover:text-cream transition-colors duration-300"
             >
               Alle Konzepte →
             </Link>
@@ -33,7 +33,7 @@ export default function ProjectPreview() {
           {/* Featured Project */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end">
             <div className="lg:col-span-8">
-              <div className="aspect-[16/10] bg-ivory-deep overflow-hidden border border-border">
+              <div className="aspect-[16/10] bg-night-deep overflow-hidden border border-border">
                 <img
                   src="/images/restaurant.webp"
                   alt="Independent Restaurant concept"
@@ -44,16 +44,16 @@ export default function ProjectPreview() {
 
             <div className="lg:col-span-4 pb-4">
               <p className="label text-accent mb-4">C/01</p>
-              <h3 className="display text-2xl md:text-3xl text-graphite mb-4">
+              <h3 className="display text-2xl md:text-3xl text-cream mb-4">
                 Independent Restaurant
               </h3>
-              <p className="text-sm text-graphite-muted leading-relaxed mb-6">
+              <p className="text-sm text-cream-muted leading-relaxed mb-6">
                 Digitale Präsenz, die Atmosphäre und Küche übersetzt.
               </p>
               <div className="flex flex-wrap gap-2 mb-8">
-                <span className="label text-graphite-muted border border-border px-3 py-1">Brand</span>
-                <span className="label text-graphite-muted border border-border px-3 py-1">Web</span>
-                <span className="label text-graphite-muted border border-border px-3 py-1">Reservierung</span>
+                <span className="label text-cream-muted border border-border px-3 py-1">Brand</span>
+                <span className="label text-cream-muted border border-border px-3 py-1">Web</span>
+                <span className="label text-cream-muted border border-border px-3 py-1">Reservierung</span>
               </div>
               <Link
                 to="/projekte"
@@ -67,7 +67,7 @@ export default function ProjectPreview() {
           <div className="mt-8 md:hidden">
             <Link
               to="/projekte"
-              className="inline-flex items-center text-sm text-graphite-muted hover:text-graphite transition-colors duration-300"
+              className="inline-flex items-center text-sm text-cream-muted hover:text-cream transition-colors duration-300"
             >
               Alle Konzepte →
             </Link>

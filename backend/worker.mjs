@@ -23,7 +23,16 @@ export function startWorker(store, { fetch = fetchSite, pollMs = 250, retryMs = 
         try {
           const report = analysePage(await load(job.website));
           if (report.status !== 'analysed') store.finish(job, null, 'site_unavailable');
-          else store.finish(job, report);
+          else {
+            // A competitor that cannot be read is reported as such; it never fails the visitor's own report.
+            const competitors = await Promise.all(JSON.parse(job.competitors || '[]').map(async url => {
+              try {
+                const other = analysePage(await fetch(url));
+                return other.status === 'analysed' ? other : { url, status: 'unavailable' };
+              } catch { return { url, status: 'unavailable' }; }
+            }));
+            store.finish(job, competitors.length ? { ...report, competitors } : report);
+          }
         } catch {
           store.finish(job, null, 'site_unavailable');
         }

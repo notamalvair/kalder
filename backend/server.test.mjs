@@ -151,3 +151,41 @@ test('per-visitor limits use X-Real-IP only when the proxy is explicitly trusted
     assert.equal((await post('not-an-ip', 'd@example.org')).status, trustProxy ? 202 : 429);
   }
 });
+
+test('optional competitors are validated, deduplicated and analysed without failing the own report', async t => {
+  const { post, store } = await api(t);
+  for (const competitors of [['localhost'], ['a.de', 'b.de', 'c.de'], ['example.com'], 'a.de', [42]]) {
+    const response = await post({ ...input, competitors });
+    assert.equal(response.status, 400);
+    assert.equal((await response.json()).error, 'invalid_competitor');
+  }
+  const { id } = await (await post({ ...input, competitors: ['Rival.de', 'https://rival.de/menu'] })).json();
+  const html = '<title>Example restaurant</title>';
+  const stop = startWorker(store, { pollMs: 1, fetch: async url => {
+    if (url.includes('rival')) throw new Error('blocked_address');
+    return { url, statusCode: 200, contentType: 'text/html', html, responseTimeMs: 5 };
+  } });
+  for (let i = 0; i < 200 && store.getStatus(id).state === 'queued'; i++) await new Promise(r => setTimeout(r, 5));
+  await stop();
+  assert.equal(store.getStatus(id).state, 'report_ready');
+  const report = JSON.parse(store.db.prepare('SELECT report FROM jobs WHERE id=?').get(id).report);
+  assert.deepEqual(report.competitors, [{ url: 'https://rival.de/', status: 'unavailable' }]);
+});
+
+test('an older database without the competitors column is upgraded in place', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'kalder-db-'));
+  const file = join(directory, 'jobs.sqlite');
+  const { DatabaseSync } = await import('node:sqlite');
+  const old = new DatabaseSync(file);
+  old.exec(`CREATE TABLE jobs (id TEXT PRIMARY KEY, website TEXT NOT NULL, email TEXT NOT NULL,
+    client_key TEXT NOT NULL, state TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0, lease_until INTEGER, report TEXT, error TEXT);
+    INSERT INTO jobs (id, website, email, client_key, state, created_at, updated_at)
+    VALUES ('old', 'https://example.com/', 'a@example.org', 'k', 'queued', 1, 1);`);
+  old.close();
+  const store = new JobStore(file);
+  assert.equal(store.claim().competitors, '[]');
+  store.enqueue({ ...stored, competitors: ['https://rival.de/'] });
+  store.close();
+  rmSync(directory, { recursive: true, force: true });
+});

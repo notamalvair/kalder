@@ -34,7 +34,7 @@ export default function DiagnosticDetail() {
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <section className="py-24 md:py-32 lg:py-40 bg-ivory border-t border-border">
+    <section className="py-24 md:py-32 lg:py-40 bg-night border-t border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <motion.div
           ref={ref}
@@ -44,10 +44,10 @@ export default function DiagnosticDetail() {
           className="mb-16 max-w-3xl"
         >
           <p className="label text-accent mb-6">BEISPIEL / DIAGNOSE</p>
-          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-graphite">
+          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
             Typische Befunde.
           </h2>
-          <p className="mt-6 text-base text-graphite-muted leading-relaxed">
+          <p className="mt-6 text-base text-cream-muted leading-relaxed">
             Illustrative Beispiele für Schwachstellen, die wir häufig identifizieren.
           </p>
         </motion.div>
@@ -62,16 +62,16 @@ export default function DiagnosticDetail() {
               className="border-t border-border py-6 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 items-start"
             >
               <div className="md:col-span-3">
-                <p className="label text-graphite">{finding.category}</p>
+                <p className="label text-cream">{finding.category}</p>
               </div>
               <div className="md:col-span-7">
-                <p className="text-sm text-graphite-muted leading-relaxed">{finding.issue}</p>
+                <p className="text-sm text-cream-muted leading-relaxed">{finding.issue}</p>
               </div>
               <div className="md:col-span-2 md:text-right">
                 <span className={`label ${
-                  finding.severity === 'HOCH' ? 'text-red-600' :
-                  finding.severity === 'MITTEL' ? 'text-amber-600' :
-                  'text-graphite-faint'
+                  finding.severity === 'HOCH' ? 'text-signal' :
+                  finding.severity === 'MITTEL' ? 'text-warn' :
+                  'text-cream-faint'
                 }`}>
                   {finding.severity}
                 </span>

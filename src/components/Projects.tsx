@@ -30,14 +30,14 @@ const concepts = [
 
 export default function Projects() {
   return (
-    <section id="projekte" className="py-24 md:py-32 lg:py-40 bg-ivory border-t border-border">
+    <section id="projekte" className="py-24 md:py-32 lg:py-40 bg-night border-t border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <div className="mb-20 max-w-3xl">
           <p className="label text-accent mb-6">PROJEKTE / KONZEPTARBEITEN</p>
-          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-graphite">
+          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
             Ausgewählte Konzepte.
           </h2>
-          <p className="mt-6 text-base text-graphite-muted leading-relaxed">
+          <p className="mt-6 text-base text-cream-muted leading-relaxed">
             Digitale Konzepte für Gastronomie, Hospitality und lokale Unternehmen.
           </p>
         </div>
@@ -67,7 +67,7 @@ function ConceptCard({ concept, index }: { concept: typeof concepts[0]; index: n
         className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end"
       >
         <div className="lg:col-span-8">
-          <div className="aspect-[16/10] bg-ivory-deep overflow-hidden border border-border">
+          <div className="aspect-[16/10] bg-night-deep overflow-hidden border border-border">
             <img
               src={concept.image}
               alt={concept.title}
@@ -77,15 +77,15 @@ function ConceptCard({ concept, index }: { concept: typeof concepts[0]; index: n
         </div>
         <div className="lg:col-span-4 pb-4">
           <p className="label text-accent mb-4">{concept.number}</p>
-          <h3 className="display text-2xl md:text-3xl text-graphite mb-4">
+          <h3 className="display text-2xl md:text-3xl text-cream mb-4">
             {concept.title}
           </h3>
-          <p className="text-sm text-graphite-muted leading-relaxed mb-6">
+          <p className="text-sm text-cream-muted leading-relaxed mb-6">
             {concept.description}
           </p>
           <div className="flex flex-wrap gap-2">
             {concept.tags.map((tag) => (
-              <span key={tag} className="label text-graphite-muted border border-border px-3 py-1">
+              <span key={tag} className="label text-cream-muted border border-border px-3 py-1">
                 {tag}
               </span>
             ))}
@@ -106,22 +106,22 @@ function ConceptCard({ concept, index }: { concept: typeof concepts[0]; index: n
       >
         <div className="order-2 lg:order-1">
           <p className="label text-accent mb-4">{concept.number}</p>
-          <h3 className="display text-2xl md:text-3xl text-graphite mb-4">
+          <h3 className="display text-2xl md:text-3xl text-cream mb-4">
             {concept.title}
           </h3>
-          <p className="text-sm text-graphite-muted leading-relaxed mb-6 max-w-sm">
+          <p className="text-sm text-cream-muted leading-relaxed mb-6 max-w-sm">
             {concept.description}
           </p>
           <div className="flex flex-wrap gap-2">
             {concept.tags.map((tag) => (
-              <span key={tag} className="label text-graphite-muted border border-border px-3 py-1">
+              <span key={tag} className="label text-cream-muted border border-border px-3 py-1">
                 {tag}
               </span>
             ))}
           </div>
         </div>
         <div className="order-1 lg:order-2">
-          <div className="aspect-[4/5] bg-ivory-deep overflow-hidden border border-border">
+          <div className="aspect-[4/5] bg-night-deep overflow-hidden border border-border">
             <img
               src={concept.image}
               alt={concept.title}
@@ -144,22 +144,22 @@ function ConceptCard({ concept, index }: { concept: typeof concepts[0]; index: n
     >
       <div className="lg:col-span-4 lg:col-start-2 lg:pt-16">
         <p className="label text-accent mb-4">{concept.number}</p>
-        <h3 className="display text-2xl md:text-3xl text-graphite mb-4">
+        <h3 className="display text-2xl md:text-3xl text-cream mb-4">
           {concept.title}
         </h3>
-        <p className="text-sm text-graphite-muted leading-relaxed mb-6">
+        <p className="text-sm text-cream-muted leading-relaxed mb-6">
           {concept.description}
         </p>
         <div className="flex flex-wrap gap-2">
           {concept.tags.map((tag) => (
-            <span key={tag} className="label text-graphite-muted border border-border px-3 py-1">
+            <span key={tag} className="label text-cream-muted border border-border px-3 py-1">
               {tag}
             </span>
           ))}
         </div>
       </div>
       <div className="lg:col-span-6 lg:col-start-7">
-        <div className="aspect-[3/4] bg-ivory-deep overflow-hidden border border-border">
+        <div className="aspect-[3/4] bg-night-deep overflow-hidden border border-border">
           <img
             src={concept.image}
             alt={concept.title}

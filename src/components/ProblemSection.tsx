@@ -39,10 +39,10 @@ export default function ProblemSection() {
           className="max-w-3xl mb-20"
         >
           <p className="label text-accent mb-6">PROBLEM / DIAGNOSE</p>
-          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-graphite">
+          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
             Ein guter Betrieb kann online trotzdem Gäste verlieren.
           </h2>
-          <p className="mt-8 text-base text-graphite-muted leading-relaxed max-w-2xl">
+          <p className="mt-8 text-base text-cream-muted leading-relaxed max-w-2xl">
             Viele digitale Probleme bleiben unbemerkt, weil die Website auf den ersten Blick funktioniert.
           </p>
         </motion.div>
@@ -76,12 +76,12 @@ function ProblemRow({ problem, index }: { problem: typeof problems[0]; index: nu
         </span>
       </div>
       <div className="md:col-span-4">
-        <h3 className="display text-2xl md:text-3xl text-graphite group-hover:text-accent transition-colors duration-300">
+        <h3 className="display text-2xl md:text-3xl text-cream group-hover:text-accent transition-colors duration-300">
           {problem.title}
         </h3>
       </div>
       <div className="md:col-span-6 md:col-start-7">
-        <p className="text-sm text-graphite-muted leading-relaxed">
+        <p className="text-sm text-cream-muted leading-relaxed">
           {problem.description}
         </p>
       </div>

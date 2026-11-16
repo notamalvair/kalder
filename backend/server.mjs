@@ -9,20 +9,35 @@ import { startWorker } from './worker.mjs';
 import { createMailer } from './mail.mjs';
 import { startDeliveryWorker } from './delivery-worker.mjs';
 
-function validate(body) {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_request');
-  const url = normalizeWebsite(body.website);
+function validateWebsite(value, code) {
+  let url;
+  try { url = normalizeWebsite(value); } catch { throw new Error(code === 'invalid_website' ? 'invalid_url' : code); }
   const host = url.hostname.replace(/^\[|\]$/g, '');
   if ((isIP(host) && !isPublicAddress(host)) || (!isIP(host) &&
     (!host.includes('.') || /\.(local|localhost|internal|test|invalid)$/i.test(host)))) {
-    throw new Error('invalid_website');
+    throw new Error(code);
+  }
+  return url;
+}
+
+function validate(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('invalid_request');
+  const url = validateWebsite(body.website, 'invalid_website');
+  // Optional comparison: at most two other public websites, never the visitor's own host.
+  const list = body.competitors ?? [];
+  if (!Array.isArray(list) || list.length > 2) throw new Error('invalid_competitor');
+  const competitors = [];
+  for (const value of list) {
+    const other = validateWebsite(value, 'invalid_competitor');
+    if (other.hostname === url.hostname) throw new Error('invalid_competitor');
+    if (!competitors.some(item => new URL(item).hostname === other.hostname)) competitors.push(other.href);
   }
   if (typeof body.email !== 'string') throw new Error('invalid_email');
   const email = body.email.trim();
   if (email.length > 254 || !/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/.test(email) ||
     email.startsWith('.') || email.split('@')[0].endsWith('.') || email.includes('..')) throw new Error('invalid_email');
   // Conservatively treat case variants as one recipient for abuse limits.
-  return { website: url.href, email: email.toLowerCase() };
+  return { website: url.href, email: email.toLowerCase(), competitors };
 }
 
 async function readJson(req) {
@@ -78,7 +93,7 @@ export function createApi(store, { mailMode = 'disabled', trustProxy = false } =
     } catch (error) {
       const code = error.message;
       const statuses = { invalid_url: 400, invalid_request: 400, invalid_website: 400,
-        invalid_email: 400, invalid_json: 400, unsupported_media_type: 415,
+        invalid_email: 400, invalid_competitor: 400, invalid_json: 400, unsupported_media_type: 415,
         body_too_large: 413, rate_limited: 429, queue_full: 503 };
       send(statuses[code] ?? 500, { error: statuses[code] ? code : 'internal_error' },
         code === 'rate_limited' ? { 'Retry-After': '3600' } : {});

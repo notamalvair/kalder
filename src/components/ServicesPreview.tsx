@@ -15,7 +15,7 @@ export default function ServicesPreview() {
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <section className="py-24 md:py-32 lg:py-40 bg-ivory-warm border-t border-border">
+    <section className="py-24 md:py-32 lg:py-40 bg-night-raised border-t border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-16">
           <motion.div
@@ -26,7 +26,7 @@ export default function ServicesPreview() {
             className="lg:col-span-7"
           >
             <p className="label text-accent mb-6">LEISTUNGEN / AUSZUG</p>
-            <h2 className="display text-3xl md:text-4xl lg:text-5xl text-graphite">
+            <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
               Was wir verbessern.
             </h2>
           </motion.div>
@@ -38,7 +38,7 @@ export default function ServicesPreview() {
           >
             <Link
               to="/leistungen"
-              className="inline-flex items-center text-sm text-graphite-muted hover:text-graphite transition-colors duration-300"
+              className="inline-flex items-center text-sm text-cream-muted hover:text-cream transition-colors duration-300"
             >
               Alle Leistungen →
             </Link>
@@ -52,13 +52,13 @@ export default function ServicesPreview() {
               initial={{ opacity: 0, x: -20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.5, delay: index * 0.08 }}
-              className="group border-t border-border py-6 md:py-7 grid grid-cols-12 gap-4 md:gap-8 items-center hover:bg-ivory transition-colors duration-300 px-4 -mx-4"
+              className="group border-t border-border py-6 md:py-7 grid grid-cols-12 gap-4 md:gap-8 items-center hover:bg-night transition-colors duration-300 px-4 -mx-4"
             >
               <div className="col-span-2 md:col-span-1">
-                <span className="label text-graphite-faint">{service.number}</span>
+                <span className="label text-cream-faint">{service.number}</span>
               </div>
               <div className="col-span-8 md:col-span-9">
-                <h3 className="display text-xl md:text-2xl text-graphite group-hover:text-accent transition-colors duration-300">
+                <h3 className="display text-xl md:text-2xl text-cream group-hover:text-accent transition-colors duration-300">
                   {service.title}
                 </h3>
               </div>

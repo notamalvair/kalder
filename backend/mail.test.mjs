@@ -104,3 +104,13 @@ test('delivery worker uses the visitor email and records local storage honestly'
   assert.equal(store.getStatus(job.id).delivery.state, 'stored');
   assert.equal(store.claimDelivery(), undefined);
 });
+
+test('report compares the named competitors and escapes their untrusted fields', () => {
+  const data = report();
+  data.competitors = [{ ...report(), url: 'https://rival.de/?x=<b>' }, { url: 'https://down.de/', status: 'unavailable' }];
+  const message = renderReport(data);
+  assert.ok(message.text.includes('Ihre Website | rival.de | down.de'));
+  assert.ok(message.text.includes('nicht abrufbar'));
+  assert.ok(message.html.includes('Sie im Vergleich') && !message.html.includes('<b>'));
+  assert.ok(!renderReport(report()).html.includes('Sie im Vergleich'));
+});

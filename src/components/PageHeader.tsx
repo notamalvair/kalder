@@ -8,7 +8,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({ number, title, subtitle }: PageHeaderProps) {
   return (
-    <section className="pt-32 md:pt-40 pb-16 md:pb-20 bg-ivory border-b border-border">
+    <section className="pt-32 md:pt-40 pb-16 md:pb-20 bg-night border-b border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -17,11 +17,11 @@ export default function PageHeader({ number, title, subtitle }: PageHeaderProps)
           className="max-w-4xl"
         >
           <p className="label text-accent mb-6">{number}</p>
-          <h1 className="display text-3xl md:text-4xl lg:text-[3.5rem] text-graphite mb-6">
+          <h1 className="display text-3xl md:text-4xl lg:text-[3.5rem] text-cream mb-6">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-base md:text-lg text-graphite-muted leading-relaxed max-w-2xl">
+            <p className="text-base md:text-lg text-cream-muted leading-relaxed max-w-2xl">
               {subtitle}
             </p>
           )}

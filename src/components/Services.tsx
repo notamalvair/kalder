@@ -44,7 +44,7 @@ export default function Services() {
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <section id="leistungen" className="py-24 md:py-32 lg:py-40 bg-graphite text-ivory">
+    <section id="leistungen" className="py-24 md:py-32 lg:py-40 bg-night-deep text-cream border-y border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <motion.div
           ref={ref}
@@ -54,7 +54,7 @@ export default function Services() {
           className="mb-20 max-w-3xl"
         >
           <p className="label text-accent-faint mb-6">LEISTUNGEN / WAS WIR VERBESSERN</p>
-          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-ivory">
+          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
             Was wir verbessern.
           </h2>
         </motion.div>
@@ -79,13 +79,13 @@ function ServiceCard({ service, index }: { service: typeof services[0]; index: n
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.08 }}
-      className="group border-t border-ivory/10 py-10 md:py-12"
+      className="group border-t border-cream/10 py-10 md:py-12"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         {/* Number & Title */}
         <div className="lg:col-span-4">
           <p className="label text-accent-faint mb-3">{service.number}</p>
-          <h3 className="display text-2xl md:text-3xl text-ivory group-hover:text-accent-faint transition-colors duration-300">
+          <h3 className="display text-2xl md:text-3xl text-cream group-hover:text-accent-faint transition-colors duration-300">
             {service.title}
           </h3>
         </div>
@@ -94,16 +94,16 @@ function ServiceCard({ service, index }: { service: typeof services[0]; index: n
         <div className="lg:col-span-8 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <p className="label text-ivory/50 mb-2">WAS</p>
-              <p className="text-sm text-ivory/80 leading-relaxed">{service.what}</p>
+              <p className="label text-cream/50 mb-2">WAS</p>
+              <p className="text-sm text-cream/80 leading-relaxed">{service.what}</p>
             </div>
             <div>
-              <p className="label text-ivory/50 mb-2">WARUM</p>
-              <p className="text-sm text-ivory/80 leading-relaxed">{service.why}</p>
+              <p className="label text-cream/50 mb-2">WARUM</p>
+              <p className="text-sm text-cream/80 leading-relaxed">{service.why}</p>
             </div>
             <div>
-              <p className="label text-ivory/50 mb-2">WANN</p>
-              <p className="text-sm text-ivory/80 leading-relaxed">{service.when}</p>
+              <p className="label text-cream/50 mb-2">WANN</p>
+              <p className="text-sm text-cream/80 leading-relaxed">{service.when}</p>
             </div>
           </div>
         </div>

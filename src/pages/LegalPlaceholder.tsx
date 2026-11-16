@@ -11,12 +11,12 @@ export default function LegalPlaceholder({ title, number }: LegalPlaceholderProp
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <div className="max-w-3xl">
           <p className="label text-accent mb-6">{number}</p>
-          <h1 className="display text-4xl md:text-5xl text-graphite mb-8">{title}</h1>
+          <h1 className="display text-4xl md:text-5xl text-cream mb-8">{title}</h1>
           <div className="border-t border-border pt-8">
-            <p className="text-base text-graphite-muted leading-relaxed max-w-2xl">
+            <p className="text-base text-cream-muted leading-relaxed max-w-2xl">
               Rechtliche Angaben werden vor Veröffentlichung mit den tatsächlichen Unternehmensdaten ergänzt.
             </p>
-            <p className="text-sm text-graphite-faint mt-4">
+            <p className="text-sm text-cream-faint mt-4">
               Diese Seite enthält bewusst keine erfundenen Unternehmens-, Adress- oder Registrierungsdaten.
             </p>
           </div>

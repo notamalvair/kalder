@@ -13,7 +13,7 @@ export default function Kontakt() {
 
   return (
     <>
-      <section className="pt-32 md:pt-40 pb-16 md:pb-20 bg-ivory border-b border-border">
+      <section className="pt-32 md:pt-40 pb-16 md:pb-20 bg-night border-b border-border">
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -22,17 +22,17 @@ export default function Kontakt() {
             className="max-w-4xl"
           >
             <p className="label text-accent mb-6">K/11 — KONTAKT / STUDIO</p>
-            <h1 className="display text-4xl md:text-5xl lg:text-[4rem] text-graphite mb-6">
+            <h1 className="display text-4xl md:text-5xl lg:text-[4rem] text-cream mb-6">
               Erst die Website. Dann das Gespräch.
             </h1>
-            <p className="text-base md:text-lg text-graphite-muted leading-relaxed max-w-2xl">
+            <p className="text-base md:text-lg text-cream-muted leading-relaxed max-w-2xl">
               Fordern Sie einen technischen Website-Bericht an. Für ein individuelles Projekt erreichen Sie uns direkt per E-Mail.
             </p>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-16 md:py-24 lg:py-32 bg-ivory">
+      <section className="py-16 md:py-24 lg:py-32 bg-night">
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20">
             <motion.div
@@ -42,19 +42,19 @@ export default function Kontakt() {
               transition={{ duration: 0.6 }}
               className="lg:col-span-4"
             >
-              <p className="label text-graphite-muted mb-3">DIREKT ERREICHEN</p>
+              <p className="label text-cream-muted mb-3">DIREKT ERREICHEN</p>
               <a
                 href={`mailto:${siteConfig.email}`}
-                className="text-lg text-graphite hover:text-accent transition-colors duration-300"
+                className="text-lg text-cream hover:text-accent transition-colors duration-300"
               >
                 {siteConfig.email}
               </a>
-              <p className="text-sm text-graphite-muted mt-3 max-w-xs">
+              <p className="text-sm text-cream-muted mt-3 max-w-xs">
                 Direkter Kontakt, ohne Account-Management-Schicht.
               </p>
 
               <div className="border-t border-border mt-8 pt-8">
-                <p className="label text-graphite-muted mb-4">NOCH KEIN PROJEKTBRIEFING?</p>
+                <p className="label text-cream-muted mb-4">NOCH KEIN PROJEKTBRIEFING?</p>
                 <Link to="/analyse" className="text-sm text-accent hover:text-accent-deep transition-colors">
                   Mit Website-Analyse starten →
                 </Link>

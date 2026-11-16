@@ -29,7 +29,7 @@ export default function WhyKalder() {
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
   return (
-    <section id="studio" className="py-24 md:py-32 lg:py-40 bg-ivory-warm border-t border-border">
+    <section id="studio" className="py-24 md:py-32 lg:py-40 bg-night-raised border-t border-border">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16">
         <motion.div
           ref={ref}
@@ -39,7 +39,7 @@ export default function WhyKalder() {
           className="mb-20 max-w-3xl"
         >
           <p className="label text-accent mb-6">STUDIO / WARUM KALDER</p>
-          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-graphite">
+          <h2 className="display text-3xl md:text-4xl lg:text-5xl text-cream">
             Weniger Show. Mehr Substanz.
           </h2>
         </motion.div>
@@ -73,12 +73,12 @@ function PrincipleRow({ principle, index }: { principle: typeof principles[0]; i
         </span>
       </div>
       <div className="md:col-span-4">
-        <h3 className="display text-2xl md:text-3xl text-graphite group-hover:text-accent transition-colors duration-300">
+        <h3 className="display text-2xl md:text-3xl text-cream group-hover:text-accent transition-colors duration-300">
           {principle.title}
         </h3>
       </div>
       <div className="md:col-span-6 md:col-start-7">
-        <p className="text-sm text-graphite-muted leading-relaxed">
+        <p className="text-sm text-cream-muted leading-relaxed">
           {principle.description}
         </p>
       </div>

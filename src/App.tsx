@@ -17,7 +17,7 @@ export default function App() {
       <a href="#main-content" className="skip-link">Zum Inhalt springen</a>
       <ScrollToTop />
       <SiteMeta />
-      <div className="min-h-screen bg-ivory">
+      <div className="min-h-screen bg-night">
         <Header />
         <main id="main-content" tabIndex={-1}>
           <Routes>

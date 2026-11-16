@@ -67,7 +67,7 @@ export default function Header() {
       ref={headerRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-ivory/95 backdrop-blur-sm border-b border-border'
+          ? 'bg-night/95 backdrop-blur-sm border-b border-border'
           : 'bg-transparent'
       }`}
     >
@@ -75,10 +75,10 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-baseline gap-3 group">
-            <span className="font-display text-xl font-medium tracking-tight text-graphite">
+            <span className="font-display text-xl font-medium tracking-tight text-cream">
               KALDER
             </span>
-            <span className="label text-graphite-muted hidden sm:inline">
+            <span className="label text-cream-muted hidden sm:inline">
               Digital Studio
             </span>
           </Link>
@@ -92,8 +92,8 @@ export default function Header() {
                 aria-current={isActive(link.href) ? 'page' : undefined}
                 className={`text-[13px] transition-colors duration-300 tracking-wide ${
                   isActive(link.href)
-                    ? 'text-graphite'
-                    : 'text-graphite-muted hover:text-graphite'
+                    ? 'text-cream'
+                    : 'text-cream-muted hover:text-cream'
                 }`}
               >
                 {link.label}
@@ -105,7 +105,7 @@ export default function Header() {
           <div className="hidden lg:block">
             <Link
               to="/analyse"
-              className="inline-flex items-center px-5 py-2.5 bg-graphite text-ivory text-[12px] font-medium tracking-wider uppercase hover:bg-charcoal transition-colors duration-300"
+              className="inline-flex items-center px-5 py-2.5 bg-cream text-night text-[12px] font-medium tracking-wider uppercase hover:bg-cream-bright transition-colors duration-300"
             >
               Website prüfen
             </Link>
@@ -121,9 +121,9 @@ export default function Header() {
             aria-expanded={menuOpen}
             aria-controls="mobile-navigation"
           >
-            <span className={`w-5 h-[1px] bg-graphite transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[3.5px]' : ''}`} />
-            <span className={`w-5 h-[1px] bg-graphite transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-            <span className={`w-5 h-[1px] bg-graphite transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[3.5px]' : ''}`} />
+            <span className={`w-5 h-[1px] bg-cream transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[3.5px]' : ''}`} />
+            <span className={`w-5 h-[1px] bg-cream transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
+            <span className={`w-5 h-[1px] bg-cream transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[3.5px]' : ''}`} />
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             transition={{ duration: reducedMotion ? 0 : 0.2 }}
             id="mobile-navigation"
-            className="lg:hidden bg-ivory border-b border-border max-h-[calc(100dvh-4rem)] md:max-h-[calc(100dvh-5rem)] overflow-y-auto"
+            className="lg:hidden bg-night border-b border-border max-h-[calc(100dvh-4rem)] md:max-h-[calc(100dvh-5rem)] overflow-y-auto"
           >
             <div className="px-6 py-8 flex flex-col gap-5">
               {navLinks.map((link) => (
@@ -149,7 +149,7 @@ export default function Header() {
                   to={link.href}
                   aria-current={isActive(link.href) ? 'page' : undefined}
                   className={`text-sm transition-colors ${
-                    isActive(link.href) ? 'text-graphite' : 'text-graphite-muted hover:text-graphite'
+                    isActive(link.href) ? 'text-cream' : 'text-cream-muted hover:text-cream'
                   }`}
                 >
                   {link.label}
@@ -157,7 +157,7 @@ export default function Header() {
               ))}
               <Link
                 to="/analyse"
-                className="inline-flex items-center justify-center px-5 py-2.5 bg-graphite text-ivory text-xs font-medium tracking-wider uppercase mt-2"
+                className="inline-flex items-center justify-center px-5 py-2.5 bg-cream text-night text-xs font-medium tracking-wider uppercase mt-2"
               >
                 Website prüfen
               </Link>

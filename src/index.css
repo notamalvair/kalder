@@ -25,29 +25,32 @@
 }
 
 @theme {
-  /* Backgrounds */
-  --color-ivory: #F3F0E9;
-  --color-ivory-warm: #EEEAE1;
-  --color-ivory-deep: #E8E3D8;
-  --color-bone: #FAF7F1;
+  /* Surfaces — warm near-black, never blue */
+  --color-night: #0C0E0D;
+  --color-night-raised: #111413;
+  --color-night-deep: #151918;
+  --color-panel: #171B1A;
 
   /* Typography */
-  --color-graphite: #111312;
-  --color-graphite-soft: #1A1C1B;
-  --color-charcoal: #2A2D2B;
-  --color-graphite-muted: #6B6F6D;
-  --color-graphite-faint: #9A9E9C;
+  --color-cream: #F3F0E9;
+  --color-cream-bright: #FFFDF8;
+  --color-cream-muted: #A9ADA6;
+  --color-cream-faint: #747973;
 
-  /* Accent — mineral / oxidized green */
-  --color-accent: #4A5D52;
-  --color-accent-deep: #3A4A41;
-  --color-accent-light: #6B7F72;
-  --color-accent-faint: #D4DCD6;
+  /* Accent — mineral green, lifted for dark surfaces */
+  --color-accent: #8FB3A0;
+  --color-accent-deep: #A9C8B7;
+  --color-accent-light: #6B8A78;
+  --color-accent-faint: #B9CEC2;
+
+  /* Signals — copper for findings, amber for warnings */
+  --color-signal: #E0875B;
+  --color-warn: #D9B36A;
 
   /* UI */
-  --color-border: #D8D3C7;
-  --color-border-light: #E5E1D6;
-  --color-border-dark: #B8B3A6;
+  --color-border: #272C2A;
+  --color-border-light: #1E2221;
+  --color-border-dark: #3B413E;
 
   /* Fonts */
   --font-display: 'Space Grotesk', sans-serif;
@@ -62,6 +65,8 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
+  background-color: var(--color-night);
 }
 
 .skip-link {
@@ -70,8 +75,8 @@ html {
   left: 1rem;
   z-index: 100;
   padding: 0.75rem 1rem;
-  background: var(--color-graphite);
-  color: var(--color-ivory);
+  background: var(--color-cream);
+  color: var(--color-night);
   transform: translateY(-200%);
 }
 
@@ -89,15 +94,15 @@ html {
 
 body {
   font-family: var(--font-body);
-  background-color: var(--color-ivory);
-  color: var(--color-graphite);
+  background-color: var(--color-night);
+  color: var(--color-cream);
   line-height: 1.6;
   font-feature-settings: 'ss01', 'ss02';
 }
 
 ::selection {
   background-color: var(--color-accent);
-  color: var(--color-ivory);
+  color: var(--color-night);
 }
 
 /* Thin rule utility */
@@ -117,7 +122,7 @@ body {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-graphite-muted);
+  color: var(--color-cream-muted);
 }
 
 .meta-light {
@@ -159,7 +164,7 @@ textarea:focus-visible {
 
 input[aria-invalid="true"],
 textarea[aria-invalid="true"] {
-  border-color: #9f3f35;
+  border-color: var(--color-signal);
 }
 
 @media (max-width: 640px) {
@@ -167,3 +172,30 @@ textarea[aria-invalid="true"] {
     letter-spacing: -0.025em;
   }
 }
+
+/* Dark premium: one soft light source behind the hero, nothing decorative elsewhere */
+.hero-glow {
+  background:
+    radial-gradient(60rem 36rem at 78% 18%, rgba(143, 179, 160, 0.10), transparent 62%),
+    radial-gradient(40rem 28rem at 8% 92%, rgba(224, 135, 91, 0.05), transparent 60%);
+}
+
+/* Diagnostic panel: a single slow scan line */
+.scan { position: relative; overflow: hidden; }
+.scan::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.55;
+  animation: scan 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes scan {
+  0% { transform: translateY(0); opacity: 0; }
+  8% { opacity: 0.55; }
+  92% { opacity: 0.55; }
+  100% { transform: translateY(38rem); opacity: 0; }
+}
+
+input::placeholder { color: var(--color-cream-faint); }

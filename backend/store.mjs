@@ -19,6 +19,10 @@ export class JobStore {
       CREATE INDEX IF NOT EXISTS jobs_queue ON jobs(state, created_at);
       CREATE INDEX IF NOT EXISTS jobs_ip ON jobs(client_key, created_at);
       CREATE INDEX IF NOT EXISTS jobs_email ON jobs(email, created_at);`);
+    // Added after the first release; existing databases are upgraded in place.
+    if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'competitors')) {
+      this.db.exec("ALTER TABLE jobs ADD COLUMN competitors TEXT NOT NULL DEFAULT '[]'");
+    }
     this.db.exec(`CREATE TABLE IF NOT EXISTS deliveries (
       job_id TEXT PRIMARY KEY, state TEXT NOT NULL DEFAULT 'pending',
       attempts INTEGER NOT NULL DEFAULT 0, lease_until INTEGER,
@@ -26,7 +30,7 @@ export class JobStore {
     );`);
   }
 
-  enqueue({ website, email, clientKey }) {
+  enqueue({ website, email, clientKey, competitors = [] }) {
     const now = this.now();
     this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -41,8 +45,8 @@ export class JobStore {
       }
       if (count("state IN ('queued','processing')") >= this.limits.maxPending) throw new Error('queue_full');
       const id = randomBytes(32).toString('hex');
-      this.db.prepare(`INSERT INTO jobs (id, website, email, client_key, state, created_at, updated_at)
-        VALUES (?, ?, ?, ?, 'queued', ?, ?)`).run(id, website, email, clientKey, now, now);
+      this.db.prepare(`INSERT INTO jobs (id, website, email, client_key, state, created_at, updated_at, competitors)
+        VALUES (?, ?, ?, ?, 'queued', ?, ?, ?)`).run(id, website, email, clientKey, now, now, JSON.stringify(competitors));
       this.db.exec('COMMIT');
       return { id, state: 'queued' };
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
